@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agentflow
+  namespace: agentflow
+data:
+  AGENTFLOW_ENVIRONMENT: kubernetes
+  AGENTFLOW_PROVIDER: local
+  AGENTFLOW_VECTOR_PATH: /app/data/vectors
+  AGENTFLOW_LOG_LEVEL: INFO
+  AGENTFLOW_DATABASE_URL: sqlite:////app/data/agentflow.db

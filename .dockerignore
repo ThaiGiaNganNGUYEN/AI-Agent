@@ -1,0 +1,10 @@
+.venv
+venv
+data
+.git
+.pytest_cache
+.coverage
+htmlcov
+**/__pycache__
+**/*.pyc
+infra/terraform/.terraform

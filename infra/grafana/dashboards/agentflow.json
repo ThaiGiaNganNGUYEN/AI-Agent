@@ -1,0 +1,38 @@
+{
+  "uid": "agentflow",
+  "title": "AgentFlow",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Workflow runs",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "targets": [{ "expr": "sum(agentflow_workflow_runs_total)", "refId": "A" }]
+    },
+    {
+      "type": "stat",
+      "title": "Safety blocks",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "targets": [{ "expr": "sum(agentflow_safety_decisions_total{decision=\"blocked\"})", "refId": "A" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Workflow latency",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [{ "expr": "histogram_quantile(0.95, sum by (le) (rate(agentflow_workflow_latency_seconds_bucket[5m])))", "refId": "A" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Runs by status",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "targets": [{ "expr": "sum by (status) (rate(agentflow_workflow_runs_total[5m]))", "refId": "A" }]
+    }
+  ]
+}

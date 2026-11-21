@@ -1,0 +1,17 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+data/
+.env
+dist/
+build/
+*.egg-info/
+.terraform/
+*.tfstate
+*.tfstate.*
+.idea/
+.vscode/

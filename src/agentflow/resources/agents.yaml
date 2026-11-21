@@ -1,0 +1,20 @@
+agents:
+  - name: research
+    type: research
+    description: Collects external market, economic, and jurisdiction data.
+    tools: [fx_rates, world_bank, country_info]
+    temperature: 0
+  - name: analyst
+    type: analyst
+    description: Interprets retrieved policy and tool evidence, then drafts an answer.
+    prompt: analyst
+    temperature: 0.2
+  - name: compliance
+    type: compliance
+    description: Applies safety, privacy, and policy checks before anything is returned.
+    temperature: 0
+  - name: executor
+    type: executor
+    description: Publishes the client-facing treasury memo.
+    prompt: executor
+    temperature: 0.2

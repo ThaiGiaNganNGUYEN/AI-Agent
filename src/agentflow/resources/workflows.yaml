@@ -1,0 +1,85 @@
+workflows:
+  - name: currency_risk_brief
+    description: Pull a live FX rate and jurisdiction notes, then write a treasury brief.
+    domain: finance
+    inputs:
+      - name: question
+        label: Question
+        type: text
+        required: true
+        default: Summarize the exposure for this currency pair and any jurisdiction notes.
+      - name: base
+        label: Base currency
+        type: text
+        default: USD
+      - name: quote
+        label: Quote currency
+        type: text
+        default: EUR
+      - name: country
+        label: Country code
+        type: text
+        default: DE
+    steps:
+      - id: research
+        agent: research
+        tools: [fx_rates, country_info]
+      - id: analyze
+        agent: analyst
+        depends_on: [research]
+      - id: comply
+        agent: compliance
+        depends_on: [analyze]
+      - id: respond
+        agent: executor
+        depends_on: [comply]
+
+  - name: economic_indicator_review
+    description: Review a World Bank indicator beside company approval policy.
+    domain: finance
+    inputs:
+      - name: question
+        label: Question
+        type: text
+        required: true
+        default: Summarize the latest GDP figure and what our approval policy implies.
+      - name: country
+        label: Country code
+        type: text
+        default: US
+      - name: indicator
+        label: World Bank indicator
+        type: text
+        default: NY.GDP.MKTP.CD
+    steps:
+      - id: research
+        agent: research
+        tools: [world_bank, country_info]
+      - id: analyze
+        agent: analyst
+        depends_on: [research]
+      - id: comply
+        agent: compliance
+        depends_on: [analyze]
+      - id: respond
+        agent: executor
+        depends_on: [comply]
+
+  - name: policy_qa
+    description: Answer a treasury policy question from the company knowledge base.
+    domain: finance
+    inputs:
+      - name: question
+        label: Question
+        type: text
+        required: true
+        default: What does our hedge policy require before a position is opened?
+    steps:
+      - id: analyze
+        agent: analyst
+      - id: comply
+        agent: compliance
+        depends_on: [analyze]
+      - id: respond
+        agent: executor
+        depends_on: [comply]

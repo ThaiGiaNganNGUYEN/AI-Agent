@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AgentFlow Enterprise</title>
+  <style>
+    :root {
+      --bg: #f3efe6;
+      --ink: #1b2430;
+      --muted: #5e6a78;
+      --panel: #fffdf8;
+      --line: #e4d9c8;
+      --accent: #0e6b62;
+      --accent-dark: #084842;
+      --sidebar: #1d2740;
+      --sidebar-ink: #f3efe6;
+      --warn: #9a3412;
+      --bad: #9f1239;
+      --good: #166534;
+      --shadow: 0 16px 40px rgba(27, 36, 48, 0.08);
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+      line-height: 1.45;
+    }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button {
+      background: var(--accent);
+      color: white;
+      border: 0;
+      border-radius: 8px;
+      padding: 0.55rem 0.9rem;
+      cursor: pointer;
+      min-height: 40px;
+    }
+    button.secondary { background: transparent; color: var(--accent-dark); border: 1px solid var(--line); }
+    button:disabled { opacity: 0.6; cursor: wait; }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 8px;
+      padding: 0.55rem 0.7rem;
+      min-height: 40px;
+    }
+    textarea { min-height: 110px; resize: vertical; }
+    label { display: block; font-size: 0.82rem; color: var(--muted); margin-bottom: 0.25rem; }
+    .login-wrap {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 1.5rem;
+    }
+    .login-card, .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+    .login-card { width: min(440px, 100%); padding: 1.5rem; }
+    .eyebrow { letter-spacing: 0.14em; text-transform: uppercase; font-size: 0.72rem; color: var(--accent); margin: 0; }
+    h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; margin: 0.2rem 0 0.6rem; }
+    .muted { color: var(--muted); }
+    .demo-accounts { display: grid; gap: 0.35rem; margin: 1rem 0; font-size: 0.88rem; }
+    .demo-accounts div { display: flex; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--line); padding-top: 0.35rem; }
+    .shell { display: grid; grid-template-columns: 230px 1fr; min-height: 100vh; }
+    aside {
+      background: var(--sidebar);
+      color: var(--sidebar-ink);
+      padding: 1.2rem 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    aside p { margin: 0 0 1rem; color: #c9c1b4; font-size: 0.85rem; }
+    aside button {
+      background: transparent;
+      color: var(--sidebar-ink);
+      text-align: left;
+      border-radius: 8px;
+    }
+    aside button.active, aside button:hover { background: rgba(255, 255, 255, 0.08); }
+    main { padding: 1.4rem; display: grid; gap: 1rem; align-content: start; }
+    .topbar { display: flex; justify-content: space-between; gap: 1rem; align-items: center; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.8rem; }
+    .stat { padding: 0.9rem 1rem; }
+    .stat strong { display: block; font-size: 1.4rem; }
+    .split { display: grid; grid-template-columns: 280px 1fr; gap: 1rem; }
+    .stack { display: grid; gap: 0.7rem; }
+    .panel { padding: 1rem; }
+    .error { background: #fff1f2; color: var(--bad); border-radius: 8px; padding: 0.7rem 0.8rem; }
+    .pill { display: inline-block; border-radius: 999px; padding: 0.1rem 0.55rem; font-size: 0.75rem; background: #e7f5f2; color: var(--accent-dark); }
+    .pill.failed, .pill.blocked { background: #ffe4e6; color: var(--bad); }
+    .pill.succeeded { background: #dcfce7; color: var(--good); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { text-align: left; padding: 0.45rem 0.3rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+    pre {
+      white-space: pre-wrap;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.86rem;
+      margin: 0;
+    }
+    .match { border-top: 1px solid var(--line); padding-top: 0.6rem; }
+    @media (max-width: 900px) {
+      .shell { grid-template-columns: 1fr; }
+      aside { flex-direction: row; overflow-x: auto; }
+      .grid, .split { grid-template-columns: 1fr; }
+      aside p { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="login-view" class="login-wrap">
+    <form id="login-form" class="login-card stack">
+      <p class="eyebrow">AgentFlow Enterprise</p>
+      <h1>Treasury desk</h1>
+      <p class="muted">Sign in to route work across research, analyst, compliance, and executor agents.</p>
+      <div class="demo-accounts">
+        <div><span>Admin</span><span>admin@agentflow.local</span></div>
+        <div><span>Operator</span><span>operator@agentflow.local</span></div>
+        <div><span>Viewer</span><span>viewer@agentflow.local</span></div>
+        <div><span>Passwords</span><span>ChangeMe-Admin-1, ChangeMe-Operator-1, ChangeMe-Viewer-1</span></div>
+      </div>
+      <div>
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="username" value="admin@agentflow.local" required />
+      </div>
+      <div>
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" value="ChangeMe-Admin-1" required />
+      </div>
+      <button type="submit" data-testid="sign-in">Sign in</button>
+      <div id="login-error"></div>
+    </form>
+  </div>
+  <div id="app-view" class="shell" hidden>
+    <aside>
+      <div>
+        <strong>AgentFlow</strong>
+        <p id="who"></p>
+      </div>
+      <button type="button" data-view="overview" class="active">Overview</button>
+      <button type="button" data-view="workflows" data-testid="nav-workflows">Workflows</button>
+      <button type="button" data-view="runs">Runs</button>
+      <button type="button" data-view="knowledge" data-testid="nav-knowledge">Knowledge</button>
+      <button type="button" data-view="evaluation" data-testid="nav-evaluation">Evaluation</button>
+      <button type="button" data-view="admin" id="admin-nav">Admin</button>
+      <button type="button" id="sign-out" class="secondary">Sign out</button>
+    </aside>
+    <main>
+      <div class="topbar">
+        <div>
+          <p class="eyebrow" id="view-kicker">Overview</p>
+          <h2 id="view-title">Desk status</h2>
+        </div>
+      </div>
+      <div id="banner"></div>
+      <div id="main"></div>
+    </main>
+  </div>
+  <script>
+    const state = {
+      token: sessionStorage.getItem("agentflow_token") || "",
+      user: null,
+      view: "overview",
+      workflows: [],
+      selected: "policy_qa"
+    };
+
+    function esc(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (ch) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[ch]));
+    }
+
+    function money(value) {
+      return `$${Number(value || 0).toFixed(6)}`;
+    }
+
+    function pill(status) {
+      return `<span class="pill ${esc(status)}">${esc(status)}</span>`;
+    }
+
+    async function api(path, options = {}) {
+      const headers = { ...(options.headers || {}) };
+      if (options.body && !(options.body instanceof URLSearchParams)) headers["Content-Type"] = "application/json";
+      if (state.token) headers.Authorization = `Bearer ${state.token}`;
+      const response = await fetch(path, { ...options, headers });
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : null;
+      if (response.status === 401) {
+        logout();
+        throw new Error((data && data.error && data.error.message) || "Sign in required");
+      }
+      if (!response.ok) {
+        const message = (data && data.error && data.error.message) || (data && data.detail) || response.statusText;
+        throw new Error(typeof message === "string" ? message : JSON.stringify(message));
+      }
+      return data;
+    }
+
+    function showLogin(message) {
+      document.getElementById("login-view").hidden = false;
+      document.getElementById("app-view").hidden = true;
+      document.getElementById("login-error").innerHTML = message ? `<div class="error">${esc(message)}</div>` : "";
+    }
+
+    function showShell() {
+      document.getElementById("login-view").hidden = true;
+      document.getElementById("app-view").hidden = false;
+      document.getElementById("who").textContent = `${state.user.name} · ${state.user.role}`;
+      document.getElementById("admin-nav").hidden = state.user.role !== "admin";
+    }
+
+    function logout() {
+      state.token = "";
+      state.user = null;
+      sessionStorage.removeItem("agentflow_token");
+      showLogin("");
+    }
+
+    async function boot() {
+      if (!state.token) return showLogin("");
+      try {
+        state.user = await api("/api/v1/me");
+        showShell();
+        await render();
+      } catch (error) {
+        showLogin(error.message);
+      }
+    }
+
+    document.getElementById("login-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const body = new URLSearchParams({
+        username: document.getElementById("email").value.trim(),
+        password: document.getElementById("password").value
+      });
+      try {
+        const data = await api("/api/v1/auth/token", { method: "POST", body, headers: { "Content-Type": "application/x-www-form-urlencoded" } });
+        state.token = data.access_token;
+        sessionStorage.setItem("agentflow_token", state.token);
+        state.user = await api("/api/v1/me");
+        showShell();
+        await render();
+      } catch (error) {
+        showLogin(error.message);
+      }
+    });
+
+    document.getElementById("sign-out").addEventListener("click", logout);
+    document.querySelector("aside").addEventListener("click", async (event) => {
+      const button = event.target.closest("[data-view]");
+      if (!button) return;
+      state.view = button.dataset.view;
+      document.querySelectorAll("aside [data-view]").forEach((item) => item.classList.toggle("active", item === button));
+      await render();
+    });
+
+    function setBanner(message) {
+      document.getElementById("banner").innerHTML = message ? `<div class="error">${esc(message)}</div>` : "";
+    }
+
+    async function render() {
+      setBanner("");
+      const titles = {
+        overview: ["Overview", "Desk status"],
+        workflows: ["Workflows", "Run a treasury workflow"],
+        runs: ["Runs", "Recent executions"],
+        knowledge: ["Knowledge", "Policy corpus"],
+        evaluation: ["Evaluation", "Routing, safety, and cost"],
+        admin: ["Admin", "Runtime and audit"]
+      };
+      const [kicker, title] = titles[state.view];
+      document.getElementById("view-kicker").textContent = kicker;
+      document.getElementById("view-title").textContent = title;
+      try {
+        const html = await ({
+          overview: viewOverview,
+          workflows: viewWorkflows,
+          runs: viewRuns,
+          knowledge: viewKnowledge,
+          evaluation: viewEvaluation,
+          admin: viewAdmin
+        }[state.view])();
+        document.getElementById("main").innerHTML = html;
+        bindMain();
+      } catch (error) {
+        setBanner(error.message);
+        document.getElementById("main").innerHTML = "";
+      }
+    }
+
+    async function viewOverview() {
+      const [summary, runs] = await Promise.all([api("/api/v1/metrics/summary"), api("/api/v1/runs?limit=5")]);
+      const forecast = summary.forecast_next_latency_ms == null ? "n/a" : `${Math.round(summary.forecast_next_latency_ms)} ms`;
+      const alerts = summary.alerts.length
+        ? summary.alerts.map((alert) => `<p>${esc(alert.message)}</p>`).join("")
+        : `<p class="muted">No open alerts.</p>`;
+      const rows = runs.runs.map((run) => `<tr><td>${esc(run.workflow)}</td><td>${pill(run.status)}</td><td>${esc(run.latency_ms)} ms</td></tr>`).join("");
+      return `
+        <section class="grid">
+          <article class="panel stat"><span class="muted">Runs</span><strong>${esc(summary.runs.total)}</strong></article>
+          <article class="panel stat"><span class="muted">Error rate</span><strong>${Math.round(summary.error_rate * 100)}%</strong></article>
+          <article class="panel stat"><span class="muted">Avg latency</span><strong>${Math.round(summary.avg_latency_ms)} ms</strong></article>
+          <article class="panel stat"><span class="muted">Spend</span><strong>${money(summary.spend_usd)}</strong></article>
+        </section>
+        <section class="split">
+          <article class="panel stack">
+            <h3>Provider</h3>
+            <p>${esc(summary.provider)} · ${esc(summary.model)}</p>
+            <p class="muted">Forecast next latency ${esc(forecast)}</p>
+            <p class="muted">${esc(summary.vectors)} knowledge documents · cache ${esc(summary.cache.hits)} hits / ${esc(summary.cache.misses)} misses</p>
+          </article>
+          <article class="panel">
+            <h3>Alerts</h3>
+            ${alerts}
+            <h3>Latest runs</h3>
+            <table><tbody>${rows || `<tr><td class="muted">No runs yet.</td></tr>`}</tbody></table>
+          </article>
+        </section>`;
+    }
+
+    async function viewWorkflows() {
+      if (!state.workflows.length) state.workflows = (await api("/api/v1/workflows")).workflows;
+      const options = state.workflows.map((workflow) => `<option value="${esc(workflow.name)}" ${workflow.name === state.selected ? "selected" : ""}>${esc(workflow.name)}</option>`).join("");
+      const workflow = state.workflows.find((item) => item.name === state.selected) || state.workflows[0];
+      const fields = (workflow.inputs || []).map((field) => `
+        <div>
+          <label for="field-${esc(field.name)}">${esc(field.label)}</label>
+          <input id="field-${esc(field.name)}" data-field="${esc(field.name)}" value="${esc(field.default || "")}" />
+        </div>`).join("");
+      const canRun = state.user.role !== "viewer";
+      return `
+        <section class="split">
+          <form id="run-form" class="panel stack">
+            <div>
+              <label for="workflow">Workflow</label>
+              <select id="workflow" data-testid="workflow-select">${options}</select>
+            </div>
+            <p class="muted">${esc(workflow.description)}</p>
+            ${fields}
+            <button type="submit" data-testid="run-workflow" ${canRun ? "" : "disabled"}>${canRun ? "Run workflow" : "Viewers cannot run workflows"}</button>
+          </form>
+          <article class="panel" id="workflow-result" data-testid="workflow-result"><p class="muted">The memo and step trace will appear here.</p></article>
+        </section>`;
+    }
+
+    async function viewRuns() {
+      const data = await api("/api/v1/runs?limit=20");
+      const rows = data.runs.map((run) => `
+        <tr>
+          <td><button class="secondary" data-action="open-run" data-id="${esc(run.id)}">${esc(run.workflow)}</button></td>
+          <td>${pill(run.status)}</td>
+          <td>${esc(run.actor)}</td>
+          <td>${esc(run.latency_ms)} ms</td>
+          <td>${money(run.cost_usd)}</td>
+        </tr>`).join("");
+      return `<section class="panel"><table><thead><tr><th>Workflow</th><th>Status</th><th>Actor</th><th>Latency</th><th>Cost</th></tr></thead><tbody>${rows || `<tr><td colspan="5" class="muted">No runs yet.</td></tr>`}</tbody></table><div id="run-detail"></div></section>`;
+    }
+
+    async function viewKnowledge() {
+      const data = await api("/api/v1/knowledge");
+      const docs = data.documents.map((doc) => `<article class="match"><strong>${esc(doc.title)}</strong><p class="muted">${esc(doc.excerpt)}</p></article>`).join("");
+      const writer = state.user.role === "viewer" ? "" : `
+        <form id="knowledge-form" class="stack">
+          <div><label for="doc-title">Title</label><input id="doc-title" required /></div>
+          <div><label for="doc-text">Note</label><textarea id="doc-text" required></textarea></div>
+          <button type="submit">Add note</button>
+        </form>`;
+      return `
+        <section class="split">
+          <div class="panel stack">
+            <form id="search-form" class="stack">
+              <div><label for="query">Search</label><input id="query" data-testid="knowledge-search" value="hedge ratio forward contracts" /></div>
+              <button type="submit">Search</button>
+            </form>
+            <div id="matches" data-testid="knowledge-results"></div>
+            ${writer}
+          </div>
+          <article class="panel"><h3>Corpus</h3>${docs}</article>
+        </section>`;
+    }
+
+    async function viewEvaluation() {
+      const canRun = state.user.role !== "viewer";
+      return `
+        <section class="panel stack">
+          <p class="muted">Checks routing accuracy, a live policy answer, injection blocking, and redaction.</p>
+          <button type="button" data-action="evaluate" data-testid="run-evaluation" ${canRun ? "" : "disabled"}>${canRun ? "Run evaluation" : "Viewers cannot run evaluation"}</button>
+          <div id="eval-results"></div>
+        </section>`;
+    }
+
+    async function viewAdmin() {
+      const [runtime, audit, report] = await Promise.all([
+        api("/api/v1/runtime"),
+        api("/api/v1/audit"),
+        api("/api/v1/reports/summary")
+      ]);
+      const options = ["local", "openai", "anthropic"].map((name) => `<option ${name === runtime.provider ? "selected" : ""}>${esc(name)}</option>`).join("");
+      const rows = audit.entries.slice(0, 12).map((entry) => `<tr><td>${esc(entry.action)}</td><td>${esc(entry.actor)}</td><td>${esc(entry.detail)}</td></tr>`).join("");
+      return `
+        <section class="split">
+          <form id="runtime-form" class="panel stack">
+            <div><label for="provider">Model provider</label><select id="provider">${options}</select></div>
+            <p class="muted">Switching provider does not change workflow code. OpenAI and Anthropic need API keys in the environment.</p>
+            <button type="submit">Save provider</button>
+          </form>
+          <article class="panel"><h3>Audit</h3><table><tbody>${rows}</tbody></table></article>
+        </section>
+        <article class="panel"><h3>Stakeholder report</h3><pre>${esc(report.markdown)}</pre></article>`;
+    }
+
+    function bindMain() {
+      const workflow = document.getElementById("workflow");
+      if (workflow) {
+        workflow.addEventListener("change", () => {
+          state.selected = workflow.value;
+          render();
+        });
+      }
+      const runForm = document.getElementById("run-form");
+      if (runForm) {
+        runForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const button = runForm.querySelector("button");
+          button.disabled = true;
+          const inputs = {};
+          runForm.querySelectorAll("[data-field]").forEach((input) => { inputs[input.dataset.field] = input.value; });
+          try {
+            const run = await api(`/api/v1/workflows/${state.selected}/runs`, { method: "POST", body: JSON.stringify({ inputs }) });
+            document.getElementById("workflow-result").innerHTML = renderRun(run);
+          } catch (error) {
+            setBanner(error.message);
+          } finally {
+            button.disabled = false;
+          }
+        });
+      }
+      const searchForm = document.getElementById("search-form");
+      if (searchForm) {
+        searchForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const matches = await api("/api/v1/knowledge/query", {
+            method: "POST",
+            body: JSON.stringify({ query: document.getElementById("query").value, k: 3 })
+          });
+          document.getElementById("matches").innerHTML = matches.matches.map((match) => `
+            <article class="match"><strong>${esc(match.title)}</strong> <span class="pill">${esc(match.score)}</span>
+            <pre>${esc(match.text.slice(0, 500))}</pre></article>`).join("") || `<p class="muted">No matches.</p>`;
+        });
+      }
+      const knowledgeForm = document.getElementById("knowledge-form");
+      if (knowledgeForm) {
+        knowledgeForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          await api("/api/v1/knowledge", {
+            method: "POST",
+            body: JSON.stringify({ title: document.getElementById("doc-title").value, text: document.getElementById("doc-text").value })
+          });
+          await render();
+        });
+      }
+      const runtimeForm = document.getElementById("runtime-form");
+      if (runtimeForm) {
+        runtimeForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          await api("/api/v1/runtime", {
+            method: "PATCH",
+            body: JSON.stringify({ values: { provider: document.getElementById("provider").value } })
+          });
+          setBanner("");
+          await render();
+        });
+      }
+    }
+
+    document.getElementById("main").addEventListener("click", async (event) => {
+      const button = event.target.closest("[data-action]");
+      if (!button) return;
+      if (button.dataset.action === "evaluate") {
+        button.disabled = true;
+        try {
+          const result = await api("/api/v1/evaluate", { method: "POST" });
+          const rows = result.cases.map((item) => `<tr><td>${esc(item.name)}</td><td>${item.passed ? "pass" : "fail"}</td><td>${esc(item.expected)}</td><td>${esc(item.actual)}</td></tr>`).join("");
+          document.getElementById("eval-results").innerHTML = `
+            <p>Accuracy ${Math.round(result.accuracy * 100)}% · precision ${Math.round(result.precision * 100)}% · recall ${Math.round(result.recall * 100)}% · safety ${Math.round(result.safety_pass_rate * 100)}%</p>
+            <p class="muted">Latency ${esc(result.latency_ms)} ms · cost per operation ${money(result.cost_per_operation_usd)}</p>
+            <table><tbody>${rows}</tbody></table>`;
+        } catch (error) {
+          setBanner(error.message);
+        } finally {
+          button.disabled = false;
+        }
+      }
+      if (button.dataset.action === "open-run") {
+        const run = await api(`/api/v1/runs/${button.dataset.id}`);
+        document.getElementById("run-detail").innerHTML = renderRun(run);
+      }
+    });
+
+    function renderRun(run) {
+      const steps = (run.output.steps || []).map((step) => `
+        <article class="match"><strong>${esc(step.agent)}</strong> ${step.prompt_version ? `<span class="pill">${esc(step.prompt_version)}</span>` : ""}
+        <pre>${esc(step.output)}</pre></article>`).join("");
+      return `<h3>${esc(run.workflow)} ${pill(run.status)}</h3><pre>${esc(run.output.answer || run.error || "")}</pre>${steps}`;
+    }
+
+    boot();
+  </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+rules:
+  - name: treasury-policy
+    priority: 110
+    domain: finance
+    keywords: [policy, hedge, hedging, compliance, regulation, confidential, approval]
+    workflow: policy_qa
+  - name: fx-exposure
+    priority: 100
+    domain: finance
+    keywords: [exchange rate, fx, forex, currency pair, usd, eur, jpy, gbp]
+    workflow: currency_risk_brief
+  - name: macro-indicator
+    priority: 90
+    domain: finance
+    keywords: [gdp, inflation, world bank, economic indicator, macro]
+    workflow: economic_indicator_review
+  - name: fallback
+    priority: 0
+    domain: "*"
+    keywords: []
+    workflow: policy_qa

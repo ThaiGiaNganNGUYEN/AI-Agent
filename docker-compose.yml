@@ -1,0 +1,67 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      AGENTFLOW_ENVIRONMENT: compose
+      AGENTFLOW_DATABASE_URL: postgresql+psycopg://agentflow:agentflow@db:5432/agentflow
+      AGENTFLOW_REDIS_URL: redis://redis:6379/0
+      AGENTFLOW_VECTOR_PATH: /app/data/vectors
+      AGENTFLOW_JWT_SECRET: ${AGENTFLOW_JWT_SECRET:-compose-only-change-me}
+      AGENTFLOW_PROVIDER: ${AGENTFLOW_PROVIDER:-local}
+      AGENTFLOW_OPENAI_API_KEY: ${AGENTFLOW_OPENAI_API_KEY:-}
+      AGENTFLOW_ANTHROPIC_API_KEY: ${AGENTFLOW_ANTHROPIC_API_KEY:-}
+    volumes:
+      - agentflow-data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: agentflow
+      POSTGRES_PASSWORD: agentflow
+      POSTGRES_DB: agentflow
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentflow -d agentflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "60", "1"]
+    volumes:
+      - redis-data:/data
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    volumes:
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+volumes:
+  agentflow-data:
+  postgres-data:
+  redis-data:
